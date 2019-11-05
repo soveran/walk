@@ -5,36 +5,35 @@
 #include <stdio.h>
 #include <string.h>
 
-static int tree(char * const argv[]) {
+static int tree(char *const argv[]) {
 	FTS *ftsp;
-	FTSENT *p, *chp;
+	FTSENT *f, *children;
 
 	int fts_options = FTS_COMFOLLOW | FTS_LOGICAL | FTS_NOCHDIR;
 
 	if ((ftsp = fts_open(argv, fts_options, NULL)) == NULL) {
-		warn("fts_open");
 		return -1;
 	}
 
-	chp = fts_children(ftsp, 0);
+	children = fts_children(ftsp, 0);
 
-	if (chp == NULL) {
+	if (children == NULL) {
 		return 0;
 	}
 
-	while ((p = fts_read(ftsp)) != NULL) {
-		switch (p->fts_info) {
+	while ((f = fts_read(ftsp)) != NULL) {
+		switch (f->fts_info) {
 		case FTS_D:
 
-			if (p->fts_name[0] == '.' &&
-				p->fts_name[1] != '\0') {
+			if (f->fts_name[0] == '.' &&
+				f->fts_name[1] != '\0') {
 
-				fts_set(ftsp, p, FTS_SKIP);
+				fts_set(ftsp, f, FTS_SKIP);
 			}
 			
 			break;
 		case FTS_F:
-			printf("%s\n", p->fts_path);
+			printf("%s\n", f->fts_path);
 			break;
 		default:
 			break;
@@ -42,33 +41,28 @@ static int tree(char * const argv[]) {
 	}
 
 	fts_close(ftsp);
+
 	return 0;
 }
 
-int main(int argc, char * const argv[]) {
-	int len;
+int main(int argc, char *const argv[]) {
+	int len, i;
+	char *const *dirs;
+	char *const dir = { "." };
 
 	if (argc < 2) {
-		char * const strs[1] = { "." };
-
-		if (tree(strs) != 0) {
-			return 1;
-		} else {
-			return 0;
-		}
+		dirs = &dir;
 	} else {
-		for (int i = 0; i < argc; i++) {
-			len = strlen(argv[i]);
+		dirs = argv+1;
+
+		for (i = 0; i < argc-1; i++) {
+			len = strlen(dirs[i]);
 			
-			if (argv[i][len-1] == '/') {
-				argv[i][len-1] = '\0';
+			if (dirs[i][len-1] == '/') {
+				dirs[i][len-1] = '\0';
 			}
 		}
-
-		if (tree(argv + 1) != 0) {
-			return 1;
-		} else {
-			return 0;
-		}
 	}
+
+	return (tree(dirs) && 1);
 }
