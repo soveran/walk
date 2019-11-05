@@ -46,14 +46,15 @@ static int tree(char * const argv[]) {
 }
 
 int main(int argc, char * const argv[]) {
-	int res;
 	int len;
 
 	if (argc < 2) {
 		char * const strs[1] = { "." };
 
-		if ((res = tree(strs)) != 0) {
-			res = 1;
+		if (tree(strs) != 0) {
+			return 1;
+		} else {
+			return 0;
 		}
 	} else {
 		for (int i = 0; i < argc; i++) {
@@ -64,10 +65,10 @@ int main(int argc, char * const argv[]) {
 			}
 		}
 
-		if ((res = tree(argv + 1)) != 0) {
-			res = 1;
+		if (tree(argv + 1) != 0) {
+			return 1;
+		} else {
+			return 0;
 		}
 	}
-
-	return res;
 }
