@@ -1,86 +1,73 @@
-/* We want POSIX.1-2008 + XSI, i.e. SuSv4, features */
-#define _XOPEN_SOURCE 700
-
-/* Added on 2017-06-25:
-   If the C library can support 64-bit file sizes
-   and offsets, using the standard names,
-   these defines tell the C library to do so. */
-#define _LARGEFILE64_SOURCE
-#define _FILE_OFFSET_BITS 64 
-
-#include <stdlib.h>
-#include <unistd.h>
-#include <ftw.h>
-#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <err.h>
+#include <fts.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 
-/* POSIX.1 says each process has at least 20 file descriptors.
- * Three of those belong to the standard streams.
- * Here, we use a conservative estimate of 15 available;
- * assuming we use at most two for other uses in this program,
- * we should never run into any problems.
- * Most trees are shallower than that, so it is efficient.
- * Deeper trees are traversed fine, just a bit slower.
- * (Linux allows typically hundreds to thousands of open files,
- *  so you'll probably never see any issues even if you used
- *  a much higher value, say a couple of hundred, but
- *  15 is a safe, reasonable value.)
-*/
-#ifndef USE_FDS
-#define USE_FDS 15
-#endif
+static int tree(char * const argv[]) {
+	FTS *ftsp;
+	FTSENT *p, *chp;
 
-static int print_entry(const char *filepath, const struct stat *info,
-                const int typeflag, struct FTW *pathinfo)
-{
-	if (typeflag == FTW_F) {
-	    printf("%s\n", filepath);
+	int fts_options = FTS_COMFOLLOW | FTS_LOGICAL | FTS_NOCHDIR;
+
+	if ((ftsp = fts_open(argv, fts_options, NULL)) == NULL) {
+		warn("fts_open");
+		return -1;
 	}
 
+	chp = fts_children(ftsp, 0);
+
+	if (chp == NULL) {
+		return 0;
+	}
+
+	while ((p = fts_read(ftsp)) != NULL) {
+		switch (p->fts_info) {
+		case FTS_D:
+
+			if (p->fts_name[0] == '.' &&
+				p->fts_name[1] != '\0') {
+
+				fts_set(ftsp, p, FTS_SKIP);
+			}
+			
+			break;
+		case FTS_F:
+			printf("%s\n", p->fts_path);
+			break;
+		default:
+			break;
+		}
+	}
+
+	fts_close(ftsp);
 	return 0;
 }
 
-static int print_directory_tree(const char *const dirpath) {
-    int result;
+int main(int argc, char * const argv[]) {
+	int res;
+	int len;
 
-    /* Invalid directory path? */
-    if (dirpath == NULL || *dirpath == '\0') {
-        return errno = EINVAL;
-    }
+	if (argc < 2) {
+		char * const strs[1] = { "." };
 
-    result = nftw(dirpath, print_entry, USE_FDS, FTW_PHYS);
-    if (result >= 0) {
-        errno = result;
-    }
+		if ((res = tree(strs)) != 0) {
+			res = 1;
+		}
+	} else {
+		for (int i = 0; i < argc; i++) {
+			len = strlen(argv[i]);
+			
+			if (argv[i][len-1] == '/') {
+				argv[i][len-1] = '\0';
+			}
+		}
 
-    return errno;
-}
+		if ((res = tree(argv + 1)) != 0) {
+			res = 1;
+		}
+	}
 
-int main(int argc, char *argv[]) {
-    int arg;
-    int pos;
-
-    if (argc < 2) {
-        if (print_directory_tree(".")) {
-            fprintf(stderr, "%s.\n", strerror(errno));
-            return EXIT_FAILURE;
-        }
-    } else {
-        for (arg = 1; arg < argc; arg++) {
-        	pos = strlen(argv[arg]);
-
-        	if (argv[arg][pos-1] == '/') {
-        		argv[arg][pos-1] = '\0';
-        	}
-
-            if (print_directory_tree(argv[arg])) {
-                fprintf(stderr, "%s.\n", strerror(errno));
-                return EXIT_FAILURE;
-            }
-        }
-    }
-
-    return EXIT_SUCCESS;
+	return res;
 }
