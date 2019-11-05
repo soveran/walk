@@ -9,7 +9,7 @@
 .Sh SYNOPSIS
 .
 .Nm
-.Ar path
+.Op Ar path
 .
 .Sh DESCRIPTION
 .
@@ -18,6 +18,9 @@ traverses a directory hierarchy starting at
 .Em path ,
 which defaults to the current directory, and prints the name of
 every regular file.
+.Pp
+It doesn't print the names of directories, and it skips directories
+and files whose names start with a dot.
 .
 .Sh AUTHOR
 .An Michel Martens Aq mail@soveran.com
