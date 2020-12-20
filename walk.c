@@ -30,7 +30,7 @@ static int tree(char *const argv[]) {
 
 				fts_set(ftsp, f, FTS_SKIP);
 			}
-			
+
 			break;
 		case FTS_F:
 			printf("%s\n", f->fts_path);
@@ -57,7 +57,7 @@ int main(int argc, char *const argv[]) {
 
 		for (i = 0; i < argc-1; i++) {
 			len = strlen(dirs[i]);
-			
+
 			if (dirs[i][len-1] == '/') {
 				dirs[i][len-1] = '\0';
 			}
