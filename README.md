@@ -5,12 +5,9 @@ Walk a directory tree and print the name of every regular file.
 Description
 -----------
 
-Walk traverses a directory hierarchy starting at `path`, which
-defaults to the current directory, and prints the name of every
-regular file.
-
-It doesn't print the names of directories, and it skips directories
-and files whose names start with a dot.
+Walk traverses a directory hierarchy starting at `path` and
+prints the name of every regular file. It doesn't print the
+names of directories.
 
 Installation
 ------------
