@@ -24,13 +24,6 @@ static int tree(char *const argv[]) {
 	while ((f = fts_read(ftsp)) != NULL) {
 		switch (f->fts_info) {
 		case FTS_D:
-
-			if (f->fts_name[0] == '.' &&
-				f->fts_name[1] != '\0') {
-
-				fts_set(ftsp, f, FTS_SKIP);
-			}
-
 			break;
 		case FTS_F:
 			printf("%s\n", f->fts_path);
