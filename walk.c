@@ -48,10 +48,10 @@ static int tree(char *const argv[]) {
 int main(int argc, char *const argv[]) {
 	int len, i;
 	char *const *dirs;
-	char *const dir = { "." };
 
 	if (argc < 2) {
-		dirs = &dir;
+		fprintf(stderr, "usage: %s path\n", argv[0]);
+		return 1;
 	} else {
 		dirs = argv+1;
 
